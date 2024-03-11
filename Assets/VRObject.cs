@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EHDObject : MonoBehaviour
+public class VRObject : MonoBehaviour
 {
     public GameObject toasterFront;
     public GameObject toasterTop;

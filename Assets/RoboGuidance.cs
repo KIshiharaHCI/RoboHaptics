@@ -10,8 +10,8 @@ public class RoboGuidance : MonoBehaviour
     public RoboController robot;
     public GameObject rightController;
     public Camera virtualCamera;
-    public EHDObject vrObjects;
-    private EHDObject.TargetType targetObject = EHDObject.TargetType.None;
+    public VRObject vrObjects;
+    private VRObject.TargetType targetObject = VRObject.TargetType.None;
 
     private InputDevice xrController;
     private Vector3 controllerVelocity;
@@ -118,20 +118,20 @@ public class RoboGuidance : MonoBehaviour
 
             switch (vrObjects.GetOrientation(targetObject))
             {
-                case EHDObject.Orientation.Front:
+                case VRObject.Orientation.Front:
                     float targetX = vrObjects.GetDepth(targetObject);
                     robotTargetPosition = new Vector3(targetX, hit.point.y, hit.point.z);
                     break;
-                case EHDObject.Orientation.Top:
+                case VRObject.Orientation.Top:
                     robotTargetPosition = new Vector3(hit.point.x + 0.1f, vrObjects.GetDepth(targetObject), hit.point.z);
                     break;
-                case EHDObject.Orientation.Bottom:
+                case VRObject.Orientation.Bottom:
                     // Code for handling bottom orientation
                     break;
-                case EHDObject.Orientation.Left:
+                case VRObject.Orientation.Left:
                     robotTargetPosition = new Vector3(hit.point.x, hit.point.y, vrObjects.GetDepth(targetObject));
                     break;
-                case EHDObject.Orientation.Right:
+                case VRObject.Orientation.Right:
                     robotTargetPosition = new Vector3(hit.point.x, hit.point.y, vrObjects.GetDepth(targetObject));
                     break;
                 default:
@@ -183,14 +183,9 @@ public class RoboGuidance : MonoBehaviour
         return totalDistanceChange >= 0;
     }
 
-
-
-
-
-
     private void HandleRobotMovement()
     {
-        if (targetObject == EHDObject.TargetType.None) return;
+        if (targetObject == VRObject.TargetType.None) return;
 
         Collider[] hitColliders = Physics.OverlapSphere(rightController.transform.position, 0.15f);
         isControllerInProximity = hitColliders.Length > 0;
@@ -204,50 +199,9 @@ public class RoboGuidance : MonoBehaviour
 
     }
 
-    private void CheckControllerColliderProximity()
-    {
-        Collider[] hitColliders = Physics.OverlapSphere(rightController.transform.position, 0.05f); // 5cm radius
-        isControllerInProximity = hitColliders.Length > 0; // Set true if any collider is within proximity
-    }
+    private VRObject.Orientation previousOrientation = VRObject.Orientation.Front;
 
-    private void HandleRotateMovement()
-    {
-        if (targetObject == EHDObject.TargetType.None) return;
-
-        // Start the coroutine to smoothly transition to the target position and orientation
-        StartCoroutine(RotateGradually(robotTargetPosition, robotTargetRotation, 1.0f));
-    }
-
-    IEnumerator RotateGradually(Vector3 targetPosition, Vector3 targetRotation, float duration)
-    {
-        float time = 0;
-        Vector3 startPosition = robot.targetPosition;
-        float startPitch = robot.pitch;
-        float startYaw = robot.yaw;
-
-        while (time < duration)
-        {
-            // Interpolate the position
-            robot.targetPosition = Vector3.Lerp(startPosition, targetPosition, time / duration);
-            
-            // Interpolate the pitch and yaw
-            robot.pitch = Mathf.Lerp(startPitch, targetRotation.x, time / duration);
-            robot.yaw = Mathf.Lerp(startYaw, targetRotation.y, time / duration);
-
-            // Increment the time
-            time += Time.deltaTime;
-            yield return null;
-        }
-
-        // Ensure the final values are set
-        robot.targetPosition = targetPosition;
-        robot.pitch = targetRotation.x;
-        robot.yaw = targetRotation.y;
-    }
-
-    private EHDObject.Orientation previousOrientation = EHDObject.Orientation.Front;
-
-    private bool CheckOrientationChange(EHDObject.Orientation currentOrientation)
+    private bool CheckOrientationChange(VRObject.Orientation currentOrientation)
     {
         bool orientationUnchanged = currentOrientation == previousOrientation;
         previousOrientation = currentOrientation;
