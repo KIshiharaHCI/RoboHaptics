@@ -9,6 +9,7 @@ public class RoboGuidance : MonoBehaviour
 {
     public RoboController robot;
     public GameObject rightController;
+    public MeshRenderer controllerMeshRenderer;
     public Camera virtualCamera;
     public VRObject vrObjects;
     private VRObject.TargetType targetObject = VRObject.TargetType.None;
