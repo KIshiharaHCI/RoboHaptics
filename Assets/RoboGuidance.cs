@@ -9,19 +9,22 @@ public class RoboGuidance : MonoBehaviour
 {
     public RoboController robot;
     public GameObject rightController;
-    public MeshRenderer controllerMeshRenderer;
     public Camera virtualCamera;
     public VRObject vrObjects;
     private VRObject.TargetType targetObject = VRObject.TargetType.None;
+    public GameObject virtualController;
+    private Vector3 reachOriginPosition = Vector3.zero;
+    private bool updateReachOriginPosition = true;
+    private bool hasReachStarted = false;
 
     private InputDevice xrController;
     private Vector3 controllerVelocity;
     private Vector3 controllerPosition;
-    private Vector3 robotTargetPosition;
+    private Vector3 robotTargetPosition = Vector3.zero;
     private Vector3 robotTargetRotation = new Vector3(90f, 90f, 0f);
     private Vector3 defaultRobotPosition = new Vector3(0.8f, 1f, 0);
     private bool stateChangedSinceLastCheck = false;
-    private bool orientationChanged = false;
+    private bool lastCheckMovingTowardsTarget = false;
     private bool isControllerInProximity = false;
 
     private Queue<Vector3> positionHistory = new Queue<Vector3>();
@@ -49,11 +52,13 @@ public class RoboGuidance : MonoBehaviour
 
         UpdateControllerState();
         UpdateControllerHistory();
+        UpdateVirtualControllerPosition();
+
     }
 
     IEnumerator DelayedStart()
     {
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1f);
         InitializeController();
         StartCoroutine(UpdateRobotPosition());
     }
@@ -107,6 +112,7 @@ public class RoboGuidance : MonoBehaviour
         //Debug.Log("Current Robot State: " + currentState.ToString());
     }
 
+    private bool gazeHit = false;
     private void TrackGaze()
     {
         RaycastHit hit;
@@ -114,8 +120,8 @@ public class RoboGuidance : MonoBehaviour
 
         if (Physics.Raycast(forward, out hit, 3.0f))
         {
+            gazeHit = true;
             targetObject = vrObjects.GetTargetType(hit.collider.gameObject);
-            orientationChanged = CheckOrientationChange(vrObjects.GetOrientation(targetObject));
 
             switch (vrObjects.GetOrientation(targetObject))
             {
@@ -144,8 +150,8 @@ public class RoboGuidance : MonoBehaviour
         }
         else
         {
+            gazeHit = false;
             robotTargetPosition = defaultRobotPosition;
-            //robotTargetRotation = new Vector3(90f, 90f, 0f);
         }
     }
 
@@ -156,6 +162,7 @@ public class RoboGuidance : MonoBehaviour
         return stateChangedSinceLastCheck; 
     }
 
+    private Vector3 previousTargetPosition;
     private bool CheckMovementTowardsTarget()
     {
         if (velocityHistory.Count == 0) return false;
@@ -180,34 +187,52 @@ public class RoboGuidance : MonoBehaviour
             previousDistanceToTarget = currentDistanceToTarget;
         }
 
-        // If total distance change is greater than or equal to 0, it means the controller is getting closer or staying neutral relative to the target
-        return totalDistanceChange >= 0;
+        bool isCurrentlyMovingTowardsTarget = totalDistanceChange >= 0.03;
+        if (updateReachOriginPosition && isCurrentlyMovingTowardsTarget && gazeHit && robotTargetPosition != previousTargetPosition && !controllerCollisionDetected)
+        {
+            previousTargetPosition = robotTargetPosition;
+            reachOriginPosition = controllerPosition;
+            hasReachStarted = true;
+            updateReachOriginPosition = false;
+            Debug.Log("Reach origin position set to: " + reachOriginPosition);
+        }
+        else if (!isCurrentlyMovingTowardsTarget && totalDistanceChange < 0.03)
+        {
+            updateReachOriginPosition = true;
+            hasReachStarted = false;
+
+        }
+        
+
+    // Update the last state
+    lastCheckMovingTowardsTarget = isCurrentlyMovingTowardsTarget;
+
+    return isCurrentlyMovingTowardsTarget;
     }
 
+    private bool controllerCollisionDetected = false;
     private void HandleRobotMovement()
     {
         if (targetObject == VRObject.TargetType.None) return;
 
-        Collider[] hitColliders = Physics.OverlapSphere(rightController.transform.position, 0.15f);
+        Collider[] hitColliders = Physics.OverlapSphere(controllerPosition, 0.15f);
         isControllerInProximity = hitColliders.Length > 0;
 
-        if (isControllerInProximity) return;
+        if (isControllerInProximity)
+        {
+            controllerCollisionDetected = true;
+            return;
+        } 
+        else
+        {
+            controllerCollisionDetected = false;
+        }
         
         robot.targetPosition = robotTargetPosition;
         robot.pitch = robotTargetRotation.x;
         robot.yaw = robotTargetRotation.y; 
 
 
-    }
-
-    private VRObject.Orientation previousOrientation = VRObject.Orientation.Front;
-
-    private bool CheckOrientationChange(VRObject.Orientation currentOrientation)
-    {
-        bool orientationUnchanged = currentOrientation == previousOrientation;
-        previousOrientation = currentOrientation;
-
-        return orientationUnchanged;
     }
 
 
@@ -246,5 +271,32 @@ public class RoboGuidance : MonoBehaviour
 
             historyTimer = 0;
         }    
+    }
+
+    private void UpdateVirtualControllerPosition()
+    {
+        Vector3 Hv = controllerPosition;
+
+        if (lastCheckMovingTowardsTarget && hasReachStarted)
+        {
+            Vector3 d = (robotTargetPosition - reachOriginPosition).normalized; // Direction vector
+            Vector3 Hp = controllerPosition; // Physical hand position (H_p)
+            Vector3 pv = robotTargetPosition; // In your case, p_p and p_v are the same and equal to targetPosition
+            Vector3 pp = new Vector3(robotTargetPosition.x, robotTargetPosition.y + 0.05f, robotTargetPosition.z + 0.05f);
+
+            // Calculate Ds and Dp based on your environment and the definitions provided
+            float Ds = Vector3.Dot(Hp - reachOriginPosition, d); // Distance travelled towards the target
+            float Dp = Vector3.Dot(pp - Hp, d); // Distance remaining to the target
+
+            Vector3 W = ((Ds / (Ds + Dp)) * (pp - pv));
+
+            // Apply the computed offset W to the virtual hand's position (H_v)
+            Hv = Hp + W; // Virtual hand position after applying the offset
+        }
+
+        bool enableRedirection = hasReachStarted && Hv != controllerPosition;
+        TrackController virtualControllerScript = virtualController.GetComponent<TrackController>();
+        virtualControllerScript.SetRedirectionPosition(Hv, enableRedirection);
+
     }
 }
