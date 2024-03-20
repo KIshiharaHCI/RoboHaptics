@@ -11,6 +11,7 @@ public class VRObject : MonoBehaviour
     public GameObject microwaveFront;
     public GameObject microwaveTop;
     public GameObject microwaveRight;
+    public GameObject cornflakeFront;
     public GameObject tableEdge;
 
     public enum TargetType
@@ -24,6 +25,7 @@ public class VRObject : MonoBehaviour
         MicrowaveFront,
         MicrowaveTop,
         MicrowaveRight,
+        CornflakeFront,
         TableEdge
     }
     public enum Orientation
@@ -58,7 +60,9 @@ public class VRObject : MonoBehaviour
         //potentialTargets.Add(new TargetInfo(tableEdge, TargetType.TableEdge, tableEdge.transform.position, Orientation.Front, 0.9385f));
         potentialTargets.Add(new TargetInfo(microwaveTop, TargetType.MicrowaveTop, microwaveTop.transform.position, Orientation.Top, 1.4f, TargetZone.Center));
         potentialTargets.Add(new TargetInfo(microwaveRight, TargetType.MicrowaveRight, microwaveRight.transform.position, Orientation.Right, 0.45f, TargetZone.Center));
+        potentialTargets.Add(new TargetInfo(cornflakeFront, TargetType.CornflakeFront, cornflakeFront.transform.position, Orientation.Front, 0.75f, TargetZone.Center));
         potentialTargets.Add(new TargetInfo(null, TargetType.None, new Vector3(0.8f,1f,0), Orientation.Front, 0.8f, TargetZone.Center));
+
 
     }
 

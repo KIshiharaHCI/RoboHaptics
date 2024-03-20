@@ -7,8 +7,9 @@ public class TrackController : MonoBehaviour
     public GameObject controller;
     private Vector3 position;
     private bool redirection = false;
+    private bool hold = false;
 
-    public void SetRedirectionPosition(Vector3 redirectedPosition, bool redirect)
+    public void SetRedirectionPosition(Vector3 redirectedPosition, bool redirect, bool hold)
     {
         position = redirectedPosition;
         redirection = redirect;
@@ -18,10 +19,10 @@ public class TrackController : MonoBehaviour
     {
         if(controller != null)
         {
-            if (redirection)
+            if (redirection || hold)
             {
-                Debug.Log("Redirection Position: " + position);
-                Debug.Log("Controller Position: " + controller.transform.position);
+                //Debug.Log("Redirection Position: " + position);
+                //Debug.Log("Controller Position: " + controller.transform.position);
                 transform.position = position;
             }
             else
