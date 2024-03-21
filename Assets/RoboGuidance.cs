@@ -10,8 +10,8 @@ public class RoboGuidance : MonoBehaviour
     public RoboController robot;
     public GameObject rightController;
     public Camera virtualCamera;
-    public VRObject vrObjects;
-    private VRObject.TargetType targetObject = VRObject.TargetType.None;
+    public VRObjectNew vrObjects;
+    private VRObjectNew.TargetType targetObject = VRObjectNew.TargetType.None;
     public GameObject virtualController;
     private Vector3 reachOriginPosition = Vector3.zero;
     private bool updateReachOriginPosition = true;
@@ -121,7 +121,7 @@ public class RoboGuidance : MonoBehaviour
         RaycastHit hit;
         Ray forward = new Ray(virtualCamera.transform.position, virtualCamera.transform.forward);
 
-        if (Physics.Raycast(forward, out hit, 5.0f))
+        if (Physics.Raycast(forward, out hit, 2.0f))
         {
             gazeHit = true;
             targetObject = vrObjects.GetTargetType(hit.collider.gameObject);
@@ -129,20 +129,26 @@ public class RoboGuidance : MonoBehaviour
             
             switch (vrObjects.GetOrientation(targetObject))
             {
-                case VRObject.Orientation.Front:
+                case VRObjectNew.Orientation.Front:
                     hitPointPosition = new Vector3(vrObjects.GetDepth(targetObject), hit.point.y, hit.point.z);
                     break;
-                case VRObject.Orientation.Top:
+                case VRObjectNew.Orientation.Top:
                     hitPointPosition = new Vector3(hit.point.x + 0.1f, vrObjects.GetDepth(targetObject), hit.point.z);
                     break;
-                case VRObject.Orientation.Bottom:
+                case VRObjectNew.Orientation.Bottom:
                     // Code for handling bottom orientation
                     break;
-                case VRObject.Orientation.Left:
+                case VRObjectNew.Orientation.Left:
                     hitPointPosition = new Vector3(hit.point.x, hit.point.y, vrObjects.GetDepth(targetObject));
                     break;
-                case VRObject.Orientation.Right:
+                case VRObjectNew.Orientation.Right:
                     hitPointPosition = new Vector3(hit.point.x, hit.point.y, vrObjects.GetDepth(targetObject));
+                    break;
+                case VRObjectNew.Orientation.FrontRight:
+                    hitPointPosition = new Vector3(hit.point.x, hit.point.y, hit.point.z);
+                    break;
+                case VRObjectNew.Orientation.TopRight:
+                    hitPointPosition = new Vector3(hit.point.x, hit.point.y, hit.point.z);
                     break;
                 default:
                     break;
@@ -236,7 +242,7 @@ public class RoboGuidance : MonoBehaviour
     private bool controllerCollisionDetected = false;
     private void HandleRobotMovement()
     {
-        if (targetObject == VRObject.TargetType.None) return;
+        if (targetObject == VRObjectNew.TargetType.None) return;
 
         Collider[] hitColliders = Physics.OverlapSphere(controllerPosition, 0.15f);
         isControllerInProximity = hitColliders.Length > 0;
@@ -317,7 +323,7 @@ public class RoboGuidance : MonoBehaviour
     private void UpdateVirtualControllerPosition()
     {
         Vector3 Hv = new Vector3(controllerPosition.x + 0.000000001f, controllerPosition.y, controllerPosition.z);
-        bool withinSphere =  controllerPosition != Vector3.zero && Vector3.Distance(controllerPosition, new Vector3(0, 0.78f, 0)) < 1f;
+        bool withinSphere =  controllerPosition != Vector3.zero && Vector3.Distance(controllerPosition, new Vector3(0, 0.78f, 0)) < 1.2f;
         if (lastCheckMovingTowardsTarget && hasReachStarted || withinSphere)
         {
             Vector3 d = (robotTargetPosition - reachOriginPosition).normalized; // Direction vector
@@ -347,7 +353,7 @@ public class RoboGuidance : MonoBehaviour
             enableRedirection = false;
             holdPosition = false;
 
-            if (controllerPosition != Vector3.zero && Vector3.Distance(controllerPosition, new Vector3(0, 0.78f, 0)) < 1f || virtualController.transform.position != Vector3.zero && Physics.OverlapSphere(virtualController.transform.position, 0.15f).Length > 0)
+            if (controllerPosition != Vector3.zero && Vector3.Distance(controllerPosition, new Vector3(0, 0.78f, 0)) < 1.2f || virtualController.transform.position != Vector3.zero && Physics.OverlapSphere(virtualController.transform.position, 0.15f).Length > 0)
             {
                 enableRedirection = true;
                 holdPosition = true;
@@ -367,18 +373,18 @@ public class RoboGuidance : MonoBehaviour
 
     public bool IsWithinSphere(Vector3 point)
     {
-        float radius = 0.7f;
-        Vector3 center = new Vector3(0.2f, 0.78f, 0.00f);
+        float radius = 0.78f;
+        Vector3 center = new Vector3(0f, 0.78f, 0.00f);
         return Vector3.Distance(point, center) <= radius;
     }
     public Vector3 FindNearestPointOnSphere(Vector3 point)
     {
-        float radius = 0.7f; 
-        Vector3 robotCenter = new Vector3(0.2f, 0.78f, 0.00f);
+        float radius = 0.78f; 
+        Vector3 robotCenter = new Vector3(0f, 0.78f, 0.00f);
 
         var direction = (point - robotCenter).normalized;
         var nearestPoint = robotCenter + direction * radius;
-        return new Vector3(Mathf.Max(nearestPoint.x, robotCenter.x), nearestPoint.y, nearestPoint.z);
+        return new Vector3(Mathf.Max(nearestPoint.x, -0.2f), nearestPoint.y, nearestPoint.z);
     }
 
 }

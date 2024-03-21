@@ -1,32 +1,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class VRObject : MonoBehaviour
+public class VRObjectNew : MonoBehaviour
 {
     public GameObject toasterFront;
     public GameObject toasterTop;
-    public GameObject microwaveLeft;
-    public GameObject drawerLeft;
-    public GameObject drawerRight;
-    public GameObject microwaveFront;
+    public GameObject fridgeRight;
+    public GameObject fridgeTopRight;
+    public GameObject ovenFront;
     public GameObject microwaveTop;
     public GameObject microwaveRight;
-    public GameObject cornflakeFront;
-    public GameObject tableEdge;
+    public GameObject cupboardFrontRight;
+    public GameObject croissantFrontRight;
 
     public enum TargetType
     {
         None,
         ToasterFront,
         ToasterTop,
-        MicrowaveLeft,
-        DrawerLeft,
-        DrawerRight,
-        MicrowaveFront,
+        fridgeRight,
+        fridgeTopRight,
+        OvenFront,
         MicrowaveTop,
         MicrowaveRight,
-        CornflakeFront,
-        TableEdge
+        CupboardFrontRight,
+        CroissantFrontRight
     }
     public enum Orientation
     {
@@ -34,7 +32,9 @@ public class VRObject : MonoBehaviour
         Top,
         Bottom,
         Left,
-        Right
+        Right,
+        FrontRight,
+        TopRight
     }
 
     public enum TargetZone
@@ -52,15 +52,16 @@ public class VRObject : MonoBehaviour
     void Awake()
     {
         potentialTargets.Add(new TargetInfo(toasterFront, TargetType.ToasterFront, toasterFront.transform.position, Orientation.Front, 0.88f, TargetZone.Center));
+        potentialTargets.Add(new TargetInfo(ovenFront, TargetType.OvenFront, ovenFront.transform.position, Orientation.Front, 0.92f, TargetZone.Center));
+        potentialTargets.Add(new TargetInfo(fridgeRight, TargetType.fridgeRight, fridgeRight.transform.position, Orientation.Right, 0.88f, TargetZone.Center));
+        potentialTargets.Add(new TargetInfo(cupboardFrontRight, TargetType.CupboardFrontRight, cupboardFrontRight.transform.position, Orientation.FrontRight, 1f, TargetZone.Center));
+        potentialTargets.Add(new TargetInfo(croissantFrontRight, TargetType.CroissantFrontRight, croissantFrontRight.transform.position, Orientation.FrontRight, 1f, TargetZone.Center));
+        potentialTargets.Add(new TargetInfo(fridgeTopRight, TargetType.fridgeTopRight, fridgeTopRight.transform.position, Orientation.TopRight, 1f, TargetZone.Center));
+
+
         potentialTargets.Add(new TargetInfo(toasterTop, TargetType.ToasterTop, toasterTop.transform.position, Orientation.Top, 1.25f, TargetZone.Center));
-        potentialTargets.Add(new TargetInfo(microwaveLeft, TargetType.MicrowaveLeft, microwaveLeft.transform.position, Orientation.Left, -0.2f, TargetZone.Center));
-        potentialTargets.Add(new TargetInfo(drawerLeft, TargetType.DrawerLeft, drawerLeft.transform.position, Orientation.Front,  0.88f, TargetZone.Center));
-        potentialTargets.Add(new TargetInfo(drawerRight, TargetType.DrawerRight, drawerRight.transform.position, Orientation.Front, 0.88f, TargetZone.Center));
-        potentialTargets.Add(new TargetInfo(microwaveFront, TargetType.MicrowaveFront, microwaveFront.transform.position, Orientation.Front, 0.88f, TargetZone.Center));
-        //potentialTargets.Add(new TargetInfo(tableEdge, TargetType.TableEdge, tableEdge.transform.position, Orientation.Front, 0.9385f));
         potentialTargets.Add(new TargetInfo(microwaveTop, TargetType.MicrowaveTop, microwaveTop.transform.position, Orientation.Top, 1.4f, TargetZone.Center));
         potentialTargets.Add(new TargetInfo(microwaveRight, TargetType.MicrowaveRight, microwaveRight.transform.position, Orientation.Right, 0.45f, TargetZone.Center));
-        potentialTargets.Add(new TargetInfo(cornflakeFront, TargetType.CornflakeFront, cornflakeFront.transform.position, Orientation.Front, 0.75f, TargetZone.Center));
         potentialTargets.Add(new TargetInfo(null, TargetType.None, new Vector3(0.8f,1f,0), Orientation.Front, 0.8f, TargetZone.Center));
 
 
@@ -79,9 +80,11 @@ public class VRObject : MonoBehaviour
         {
             { Orientation.Front, new Vector3(90f, 90f, 0) },
             { Orientation.Top, new Vector3(0f, 90f, 0) },
-            { Orientation.Bottom, new Vector3(180f, 90f, 0) },
+            { Orientation.Bottom, new Vector3(170f, 90f, 0) },
             { Orientation.Left, new Vector3(90f, 0f, 0) },
-            { Orientation.Right, new Vector3(90f, 179.9f, 0) },
+            { Orientation.Right, new Vector3(90f, 170f, 0) },
+            { Orientation.FrontRight, new Vector3(90f, 135f, 0) },
+            { Orientation.TopRight, new Vector3(55f, 170f, 0) }
         };
 
         public TargetInfo(GameObject obj, TargetType type, Vector3 pos, Orientation orient, float depth, TargetZone zone)
