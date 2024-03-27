@@ -153,6 +153,11 @@ public class RoboGuidance : MonoBehaviour
                 default:
                     break;
             }
+
+            VRObjectNew.TargetZone targetZone = vrObjects.GetTargetZone(targetObject);
+            hitPointPosition = vrObjects.GetTargetZonePosition(vrObjects.GetOrientation(targetObject), targetZone, hitPointPosition);
+
+
             virtualTargetPosition = hitPointPosition;
             robotTargetPosition = IsWithinSphere(hitPointPosition) ? hitPointPosition : FindNearestPointOnSphere(hitPointPosition);
 
@@ -373,13 +378,13 @@ public class RoboGuidance : MonoBehaviour
 
     public bool IsWithinSphere(Vector3 point)
     {
-        float radius = 0.78f;
+        float radius = 0.9f;
         Vector3 center = new Vector3(0f, 0.78f, 0.00f);
         return Vector3.Distance(point, center) <= radius;
     }
     public Vector3 FindNearestPointOnSphere(Vector3 point)
     {
-        float radius = 0.78f; 
+        float radius = 0.9f; 
         Vector3 robotCenter = new Vector3(0f, 0.78f, 0.00f);
 
         var direction = (point - robotCenter).normalized;

@@ -51,8 +51,8 @@ public class VRObjectNew : MonoBehaviour
 
     void Awake()
     {
-        potentialTargets.Add(new TargetInfo(toasterFront, TargetType.ToasterFront, toasterFront.transform.position, Orientation.Front, 0.88f, TargetZone.Center));
-        potentialTargets.Add(new TargetInfo(ovenFront, TargetType.OvenFront, ovenFront.transform.position, Orientation.Front, 0.92f, TargetZone.Center));
+        potentialTargets.Add(new TargetInfo(toasterFront, TargetType.ToasterFront, toasterFront.transform.position, Orientation.Front, 0.88f, TargetZone.TopLeft));
+        potentialTargets.Add(new TargetInfo(ovenFront, TargetType.OvenFront, ovenFront.transform.position, Orientation.Front, 0.92f, TargetZone.TopLeft));
         potentialTargets.Add(new TargetInfo(fridgeRight, TargetType.fridgeRight, fridgeRight.transform.position, Orientation.Right, 0.88f, TargetZone.Center));
         potentialTargets.Add(new TargetInfo(cupboardFrontRight, TargetType.CupboardFrontRight, cupboardFrontRight.transform.position, Orientation.FrontRight, 1f, TargetZone.Center));
         potentialTargets.Add(new TargetInfo(croissantFrontRight, TargetType.CroissantFrontRight, croissantFrontRight.transform.position, Orientation.FrontRight, 1f, TargetZone.Center));
@@ -192,6 +192,92 @@ public class VRObjectNew : MonoBehaviour
         Debug.LogWarning("Target of type " + type.ToString() + " not found.");
         return null;
     }
+    
+    public TargetZone GetTargetZone(TargetType targetType)
+    {
+        foreach (var targetInfo in potentialTargets)
+        {
+            if (targetInfo.targetType == targetType)
+            {
+                return targetInfo.targetZone; // Return the TargetZone of the found TargetType
+            }
+        }
+        Debug.LogWarning($"TargetZone for target type {targetType} not found.");
+        return TargetZone.None; // Default return value if no matching TargetType is found
+    }
+
+    public Vector3 GetTargetZonePosition(Orientation orientation, TargetZone targetZone, Vector3 hitPointPosition)
+    {
+        var offset = Vector3.zero;
+
+        switch (orientation)
+        {
+            case Orientation.Front:
+                switch (targetZone)
+                {
+                    case TargetZone.TopLeft:
+                        offset = new Vector3(0, 0.1f, 0.1f);
+                        break;
+                    case TargetZone.TopRight:
+                        offset = new Vector3(0, 0.1f, -0.1f);
+                        break;
+                    case TargetZone.BottomLeft:
+                        offset = new Vector3(0, -0.1f, 0.1f);
+                        break;
+                    case TargetZone.BottomRight:
+                        offset = new Vector3(0, -0.1f, -0.1f);
+                        break;
+                    case TargetZone.Center:
+                        offset = Vector3.zero;
+                        break;
+                }
+                break;
+            case Orientation.Right:
+                switch (targetZone)
+                {
+                    case TargetZone.Center:
+                        offset = Vector3.zero;
+                        break;
+                    case TargetZone.TopLeft:
+                        offset = new Vector3(0.1f, 0.1f, 0);
+                        break;
+                    case TargetZone.TopRight:
+                        offset = new Vector3(-0.1f, 0.1f, 0);
+                        break;
+                    case TargetZone.BottomLeft:
+                        offset = new Vector3(0.1f, -0.1f, 0);
+                        break;
+                    case TargetZone.BottomRight:
+                        offset = new Vector3(-0.1f, -0.1f, 0);
+                        break;
+                }
+                break;
+            case Orientation.Top:
+                switch (targetZone)
+                {
+                    case TargetZone.Center:
+                        offset = Vector3.zero;
+                        break;
+                    case TargetZone.TopLeft:
+                        offset = new Vector3(0.1f, 0, 0.1f);
+                        break;
+                    case TargetZone.TopRight:
+                        offset = new Vector3(-0.1f, 0, 0.1f);
+                        break;
+                    case TargetZone.BottomLeft:
+                        offset = new Vector3(0.1f, 0, -0.1f);
+                        break;
+                    case TargetZone.BottomRight:
+                        offset = new Vector3(-0.1f, 0, -0.1f);
+                        break;
+                }
+                break;
+            // Implement cases for other orientations (Bottom, Left, FrontRight, TopRight)
+        }
+        return hitPointPosition + offset;
+    }
+
+
 
     public TargetInfo FindClosestTarget(Vector3 position)
     {
